@@ -1,0 +1,38 @@
+
+version: "3.8"
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  server:
+    build: ./server
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/smart_investment
+      - JWT_SECRET=devsecret
+      - ALPHA_VANTAGE_KEY=${ALPHA_VANTAGE_KEY}
+    ports:
+      - "5000:5000"
+
+  client:
+    build: ./client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+
+  ml-service:
+    build: ./ml-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - server
+
+volumes:
+  mongo-data:

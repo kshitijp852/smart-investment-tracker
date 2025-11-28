@@ -1885,3 +1885,260 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   INTERACTIVE CHART STYLES
+   ============================================ */
+
+.interactive-chart-wrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.line-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-tooltip {
+  position: absolute;
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  z-index: 1000;
+  min-width: 220px;
+  border: 2px solid #e5e7eb;
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-header {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  text-align: center;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.tooltip-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.tooltip-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.portfolio-dot {
+  background: #10b981;
+}
+
+.benchmark-dot {
+  background: #f59e0b;
+}
+
+.tooltip-value {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.tooltip-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0.75rem 0;
+}
+
+.tooltip-row.difference {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  font-weight: 600;
+}
+
+.tooltip-row.difference.positive .tooltip-value {
+  color: #10b981;
+}
+
+.tooltip-row.difference.negative .tooltip-value {
+  color: #ef4444;
+}
+
+/* Chart container improvements */
+.chart-container {
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 2px solid #e5e7eb;
+  margin-top: 1rem;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.legend-color {
+  width: 20px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.legend-color.basket {
+  background: #10b981;
+}
+
+.legend-color.benchmark {
+  background: #f59e0b;
+}
+
+/* Responsive chart */
+@media (max-width: 768px) {
+  .chart-container {
+    padding: 1rem;
+  }
+
+  .chart-tooltip {
+    min-width: 180px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .tooltip-header {
+    font-size: 0.8rem;
+  }
+
+  .tooltip-row {
+    font-size: 0.75rem;
+  }
+}
+
+/* Enhanced benchmark section */
+.benchmark-chart {
+  margin-top: 2rem;
+}
+
+.benchmark-subtitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Grid lines styling */
+.grid-lines line {
+  opacity: 0.3;
+}
+
+/* Axis styling */
+.y-axis text,
+.x-axis text {
+  user-select: none;
+}
+
+/* Smooth transitions for interactive elements */
+.line-chart-svg circle {
+  transition: r 0.2s ease, filter 0.2s ease;
+}
+
+.line-chart-svg circle:hover {
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+/* Performance badges enhancement */
+.performance-badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.performance-badge {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.performance-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.performance-badge.beat {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
+}
+
+.performance-badge.track {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+}
+
+.badge-period {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.badge-status {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.performance-badge.beat .badge-status {
+  color: #10b981;
+}
+
+.performance-badge.track .badge-status {
+  color: #f59e0b;
+}

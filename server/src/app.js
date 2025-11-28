@@ -13,6 +13,11 @@ const portfolioRoutes = require('./routes/portfolio');
 const healthRoutes = require('./routes/health');
 const bucketRoutes = require('./routes/buckets-multi');
 const mfapiRoutes = require('./routes/mfapi');
+const benchmarkRoutes = require('./routes/benchmark');
+const navRoutes = require('./routes/nav');
+const portfolioReturnsRoutes = require('./routes/portfolioReturns');
+const hybridRoutes = require('./routes/hybrid');
+const navSyncJob = require('./jobs/navSyncJob');
 
 const app = express();
 app.use(cors());
@@ -27,8 +32,18 @@ app.use('/api/recommendations', recRoutes);
 app.use('/api/buckets', bucketRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/alpha', alphaRoutes);
-app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/portfolio', portfolioReturnsRoutes);
 app.use('/api/mfapi', mfapiRoutes);
+app.use('/api/benchmark', benchmarkRoutes);
+app.use('/api/nav', navRoutes);
+app.use('/api/hybrid', hybridRoutes);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  
+  // Start NAV sync job (runs daily)
+  if (process.env.ENABLE_NAV_SYNC !== 'false') {
+    navSyncJob.start(24); // Run every 24 hours
+  }
+});

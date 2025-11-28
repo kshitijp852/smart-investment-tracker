@@ -13,6 +13,10 @@ const {
   calculateFundScore,
   generateMarketReturns
 } = require('../utils/advancedAnalytics');
+const {
+  compareWithBenchmark,
+  generatePerformanceChartData
+} = require('../services/benchmarkService');
 
 // Generate multiple diversified bucket options with advanced scoring
 router.post('/generate', async (req, res) => {
@@ -217,6 +221,21 @@ router.post('/generate', async (req, res) => {
       categorySummary[fund.category].funds.push(fund);
     });
     
+    // Calculate benchmark comparison
+    let benchmarkComparison = null;
+    let chartData = null;
+    try {
+      benchmarkComparison = await compareWithBenchmark(bucket, duration);
+      chartData = generatePerformanceChartData(
+        benchmarkComparison.basketReturn,
+        benchmarkComparison.benchmarkReturn,
+        duration,
+        amount
+      );
+    } catch (err) {
+      console.error('Error calculating benchmark:', err);
+    }
+
     res.json({
       generatedAt: new Date(),
       input: { amount, duration, riskLevel },
@@ -238,7 +257,9 @@ router.post('/generate', async (req, res) => {
       diversification: {
         fundCount: bucket.length,
         categoryCount: Object.keys(categorySummary).length
-      }
+      },
+      benchmarkComparison: benchmarkComparison,
+      chartData: chartData
     });
     
   } catch (err) {

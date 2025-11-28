@@ -4,7 +4,11 @@ import axios from 'axios';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Disclaimer from './components/Disclaimer';
+import BenchmarkComparison from './components/BenchmarkComparison';
 import './styles.css';
+
+// API Base URL - uses environment variable or defaults to localhost
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 export default function App(){
   const [amount, setAmount] = useState(100000);
@@ -29,8 +33,13 @@ export default function App(){
 
   const fetchDataStats = async () => {
     try {
-      const res = await axios.get('http://localhost:5001/api/data/list');
-      const data = res.data;
+      // Get hybrid system stats
+      const hybridRes = await axios.get(`${API_BASE_URL}/hybrid/stats`);
+      const hybridData = hybridRes.data.data;
+      
+      // Get curated funds for category breakdown
+      const fundsRes = await axios.get(`${API_BASE_URL}/data/list`);
+      const data = fundsRes.data;
       const mutualFunds = data.filter(d => d.type === 'mutual_fund');
       
       // Count by category
@@ -41,12 +50,33 @@ export default function App(){
       });
       
       const stats = {
-        total: mutualFunds.length,
+        curated: hybridData.curatedFunds,
+        withRealTimeNAV: hybridData.curatedWithRealTimeNAV,
+        totalAvailable: hybridData.totalFundsAvailable,
+        coverage: hybridData.coveragePercentage,
         categories: categories
       };
       setDataStats(stats);
     } catch (err) {
       console.error('Error fetching data stats:', err);
+      // Fallback to old method
+      try {
+        const res = await axios.get(`${API_BASE_URL}/data/list`);
+        const data = res.data;
+        const mutualFunds = data.filter(d => d.type === 'mutual_fund');
+        const categories = {};
+        mutualFunds.forEach(fund => {
+          const cat = fund.meta?.category || 'other';
+          categories[cat] = (categories[cat] || 0) + 1;
+        });
+        setDataStats({
+          curated: mutualFunds.length,
+          totalAvailable: mutualFunds.length,
+          categories: categories
+        });
+      } catch (fallbackErr) {
+        console.error('Fallback stats fetch failed:', fallbackErr);
+      }
     }
   };
 
@@ -85,7 +115,7 @@ export default function App(){
     setLoading(true);
     setInputChanged(false);
     try {
-      const res = await axios.post('http://localhost:5001/api/buckets/generate', { 
+      const res = await axios.post(`${API_BASE_URL}/buckets/generate`, { 
         amount: Number(amount), 
         duration: Number(duration), 
         riskLevel: risk 
@@ -133,7 +163,7 @@ export default function App(){
         type: 'mutual_fund', 
         amount: fund.allocation 
       }));
-      const res = await axios.post('http://localhost:5001/api/portfolio/save', { items }, authHeaders);
+      const res = await axios.post(`${API_BASE_URL}/portfolio/save`, { items }, authHeaders);
       alert(`✅ ${currentBucket.strategy.name} saved successfully! ${currentBucket.bucket.length} mutual funds in your bucket.`);
       console.log(res.data);
     } catch (err){ 
@@ -212,8 +242,16 @@ export default function App(){
                 {dataStats && (
                   <div className="data-stats">
                     <span className="stats-badge">
-                      📊 {dataStats.total} Mutual Funds Available
+                      📊 {dataStats.curated} Curated Funds for Recommendations
                     </span>
+                    <span className="stats-badge" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', marginLeft: '0.5rem' }}>
+                      ✨ {dataStats.totalAvailable?.toLocaleString()} Total Funds Available
+                    </span>
+                    {dataStats.withRealTimeNAV > 0 && (
+                      <span className="stats-badge" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', marginLeft: '0.5rem' }}>
+                        🔄 {dataStats.withRealTimeNAV} with Real-time NAV
+                      </span>
+                    )}
                     <span className="stats-detail">
                       {Object.entries(dataStats.categories).map(([cat, count]) => 
                         `${count} ${cat.replace('_', ' ')}`
@@ -378,6 +416,15 @@ export default function App(){
                         </span>
                       </div>
 
+                      {/* Benchmark Comparison */}
+                      {currentBucket.benchmarkComparison && (
+                        <BenchmarkComparison 
+                          benchmarkData={currentBucket}
+                          chartData={currentBucket.chartData}
+                          formatCurrency={formatCurrency}
+                        />
+                      )}
+
                       {/* Bucket Funds */}
                       <div className="bucket-section">
                         <h3 className="bucket-title">Your Investment Bucket</h3>
@@ -536,7 +583,7 @@ export default function App(){
                   className="btn-ghost" 
                   onClick={async ()=>{ 
                     try {
-                      const res = await axios.get('http://localhost:5001/api/data/mock-seed');
+                      const res = await axios.get(`${API_BASE_URL}/data/mock-seed`);
                       await fetchDataStats();
                       alert(`✅ ${res.data.instrumentsSeeded} instruments loaded successfully!`);
                     } catch (err) {

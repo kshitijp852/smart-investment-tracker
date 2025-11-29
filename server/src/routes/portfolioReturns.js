@@ -10,12 +10,15 @@ const {
 
 /**
  * POST /api/portfolio/returns
- * Calculate returns for a portfolio
- * Body: { holdings: [{schemeCode, units, investmentDate}] }
+ * Calculate returns for a portfolio using CAGR
+ * Body: { 
+ *   holdings: [{schemeCode, allocation, percentage}] or [{schemeCode, units, investmentDate}],
+ *   projectionYears: number (optional)
+ * }
  */
 router.post('/returns', async (req, res) => {
   try {
-    const { holdings } = req.body;
+    const { holdings, projectionYears } = req.body;
     
     if (!holdings || !Array.isArray(holdings) || holdings.length === 0) {
       return res.status(400).json({
@@ -24,17 +27,7 @@ router.post('/returns', async (req, res) => {
       });
     }
     
-    // Validate holdings
-    for (const holding of holdings) {
-      if (!holding.schemeCode || !holding.units || !holding.investmentDate) {
-        return res.status(400).json({
-          success: false,
-          message: 'Each holding must have schemeCode, units, and investmentDate'
-        });
-      }
-    }
-    
-    const result = await calculatePortfolioReturns(holdings);
+    const result = await calculatePortfolioReturns(holdings, projectionYears);
     
     res.json(result);
   } catch (error) {

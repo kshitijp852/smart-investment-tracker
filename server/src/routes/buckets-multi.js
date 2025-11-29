@@ -256,19 +256,35 @@ router.post('/generate', async (req, res) => {
           benchmarkData
         );
         
-        // Generate chart data
-        const chart = generatePerformanceChartData(
-          historicalComparison.basketReturn,
-          historicalComparison.benchmarkReturn,
-          duration,
-          amount
-        );
+        // Check if we have valid historical data
+        const hasHistoricalData = Object.values(historicalComparison.basketReturn).some(v => v !== null);
         
-        option.benchmarkComparison = historicalComparison;
-        option.chartData = chart;
+        if (hasHistoricalData) {
+          // Use historical data
+          const chart = generatePerformanceChartData(
+            historicalComparison.basketReturn,
+            historicalComparison.benchmarkReturn,
+            duration,
+            amount
+          );
+          option.benchmarkComparison = historicalComparison;
+          option.chartData = chart;
+        } else {
+          // Fallback to expected returns
+          console.log('No historical data available, using expected returns');
+          const comparison = await compareWithBenchmark(option.bucket, duration);
+          const chart = generatePerformanceChartData(
+            comparison.basketReturn,
+            comparison.benchmarkReturn,
+            duration,
+            amount
+          );
+          option.benchmarkComparison = comparison;
+          option.chartData = chart;
+        }
       } catch (err) {
         console.error('Error calculating benchmark for option:', err);
-        // Fallback to expected returns if historical data unavailable
+        // Fallback to expected returns if error occurs
         try {
           const comparison = await compareWithBenchmark(option.bucket, duration);
           const chart = generatePerformanceChartData(

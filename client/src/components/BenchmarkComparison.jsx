@@ -14,9 +14,14 @@ export default function BenchmarkComparison({ benchmarkData, chartData, formatCu
 
   // Determine overall performance
   const periods = ['1Y', '3Y', '5Y'];
-  const availablePeriods = periods.filter(p => basketReturn[p] !== undefined);
+  const availablePeriods = periods.filter(p => basketReturn[p] !== undefined && basketReturn[p] !== null);
   const outperformedCount = availablePeriods.filter(p => beatsBenchmark[p]).length;
   const overallOutperformed = outperformedCount > availablePeriods.length / 2;
+  
+  // If no historical data available, hide the component
+  if (availablePeriods.length === 0) {
+    return null;
+  }
 
   return (
     <div className="benchmark-section">

@@ -64,7 +64,7 @@ async function calculatePortfolioHistoricalReturns(basket) {
       let fundsWithData = 0;
       
       for (const fund of basket) {
-        let schemeCode = fund.schemeCode;
+        let schemeCode = fund.schemeCode || fund.meta?.schemeCode;
         
         // If no schemeCode, try to find it
         if (!schemeCode) {
@@ -86,8 +86,8 @@ async function calculatePortfolioHistoricalReturns(basket) {
         }
       }
       
-      // Only include period if we have data for at least 50% of funds
-      if (fundsWithData >= basket.length * 0.5 && totalWeight > 0) {
+      // Only include period if we have data for at least 30% of funds
+      if (fundsWithData >= basket.length * 0.3 && totalWeight > 0) {
         portfolioReturns[period] = weightedReturn / totalWeight;
       } else {
         portfolioReturns[period] = null;

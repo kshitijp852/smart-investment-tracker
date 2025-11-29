@@ -210,12 +210,14 @@ body {
   font-weight: 500;
   transition: all 0.2s;
   background: var(--bg-secondary);
+  color: #1f2937;
 }
 
 .input-field:focus {
   outline: none;
   border-color: var(--primary);
   background: white;
+  color: #1f2937;
 }
 
 .input-prefix {

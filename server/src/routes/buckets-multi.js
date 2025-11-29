@@ -155,7 +155,8 @@ router.post('/generate', async (req, res) => {
               projectedGain: projectedValue - allocation,
               finalScore: fund.finalScore,
               metrics: fund.metrics,
-              scoreBreakdown: fund.scoreBreakdown
+              scoreBreakdown: fund.scoreBreakdown,
+              meta: fund.meta // Include meta for schemeCode
             });
             
             totalWeightedReturn += fund.calculatedReturn * perFundPercentage;

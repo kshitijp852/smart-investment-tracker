@@ -4,6 +4,9 @@ const {
   calculatePortfolioReturns,
   calculatePeriodReturns
 } = require('../services/portfolioReturnsService');
+const {
+  calculatePortfolioHistoricalReturns
+} = require('../services/historicalReturnsService');
 
 /**
  * POST /api/portfolio/returns
@@ -39,6 +42,38 @@ router.post('/returns', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error calculating portfolio returns',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/portfolio/historical-returns
+ * Calculate historical returns for a basket
+ * Body: { basket: [{symbol, name, percentage, category}] }
+ */
+router.post('/historical-returns', async (req, res) => {
+  try {
+    const { basket } = req.body;
+    
+    if (!basket || !Array.isArray(basket) || basket.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Basket array is required'
+      });
+    }
+    
+    const historicalReturns = await calculatePortfolioHistoricalReturns(basket);
+    
+    res.json({
+      success: true,
+      returns: historicalReturns
+    });
+  } catch (error) {
+    console.error('Error calculating historical returns:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error calculating historical returns',
       error: error.message
     });
   }

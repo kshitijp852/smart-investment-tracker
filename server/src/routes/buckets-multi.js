@@ -15,8 +15,12 @@ const {
 } = require('../utils/advancedAnalytics');
 const {
   compareWithBenchmark,
-  generatePerformanceChartData
+  generatePerformanceChartData,
+  calculateBlendedBenchmark
 } = require('../services/benchmarkService');
+const {
+  comparePortfolioWithBenchmarkHistorical
+} = require('../services/historicalReturnsService');
 
 // Generate MULTIPLE diversified bucket options
 router.post('/generate', async (req, res) => {
@@ -239,20 +243,44 @@ router.post('/generate', async (req, res) => {
       bucketOptions.push(balanced);
     }
     
-    // Add benchmark comparison to each bucket option
+    // Add benchmark comparison to each bucket option using historical NAV data
     for (const option of bucketOptions) {
       try {
-        const comparison = await compareWithBenchmark(option.bucket, duration);
+        // Get blended benchmark data
+        const benchmarkData = await calculateBlendedBenchmark(option.bucket);
+        
+        // Calculate historical returns using NAV data
+        const historicalComparison = await comparePortfolioWithBenchmarkHistorical(
+          option.bucket,
+          benchmarkData
+        );
+        
+        // Generate chart data
         const chart = generatePerformanceChartData(
-          comparison.basketReturn,
-          comparison.benchmarkReturn,
+          historicalComparison.basketReturn,
+          historicalComparison.benchmarkReturn,
           duration,
           amount
         );
-        option.benchmarkComparison = comparison;
+        
+        option.benchmarkComparison = historicalComparison;
         option.chartData = chart;
       } catch (err) {
         console.error('Error calculating benchmark for option:', err);
+        // Fallback to expected returns if historical data unavailable
+        try {
+          const comparison = await compareWithBenchmark(option.bucket, duration);
+          const chart = generatePerformanceChartData(
+            comparison.basketReturn,
+            comparison.benchmarkReturn,
+            duration,
+            amount
+          );
+          option.benchmarkComparison = comparison;
+          option.chartData = chart;
+        } catch (fallbackErr) {
+          console.error('Fallback benchmark calculation also failed:', fallbackErr);
+        }
       }
     }
     

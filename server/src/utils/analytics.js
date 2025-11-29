@@ -44,4 +44,37 @@ function sharpeLike(history, riskFree=0.03){
   return (annualReturn - riskFree)/annualStd;
 }
 
-module.exports = { computeReturns, mean, std, cagr, sharpeLike };
+/**
+ * Apply category-based bounds to expected returns
+ * Prevents unrealistic projections by capping historical CAGR
+ * @param {number} cagr - Historical CAGR from price data
+ * @param {string} category - Fund category (liquid, debt, large_cap, etc.)
+ * @returns {number} - Bounded expected return
+ */
+function applyExpectedReturnBounds(cagr, category) {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    // Load expected returns config
+    const configPath = path.join(__dirname, '../config/expected-returns.json');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    
+    // Normalize category (handle undefined, convert to lowercase)
+    const normalizedCategory = (category || 'default').toLowerCase();
+    
+    // Get bounds for category, fallback to default
+    const bounds = config[normalizedCategory] || config['default'];
+    
+    // Clamp CAGR within bounds
+    const boundedReturn = Math.max(bounds.min, Math.min(bounds.max, cagr));
+    
+    return boundedReturn;
+  } catch (error) {
+    console.error('Error loading expected returns config:', error);
+    // Fallback: clamp to conservative 5-12% range
+    return Math.max(0.05, Math.min(0.12, cagr));
+  }
+}
+
+module.exports = { computeReturns, mean, std, cagr, sharpeLike, applyExpectedReturnBounds };

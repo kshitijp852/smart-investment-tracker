@@ -17,6 +17,7 @@ const benchmarkRoutes = require('./routes/benchmark');
 const navRoutes = require('./routes/nav');
 const portfolioReturnsRoutes = require('./routes/portfolioReturns');
 const hybridRoutes = require('./routes/hybrid');
+const exploreFundsRoutes = require('./routes/explore-funds');
 const navSyncJob = require('./jobs/navSyncJob');
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/mfapi', mfapiRoutes);
 app.use('/api/benchmark', benchmarkRoutes);
 app.use('/api/nav', navRoutes);
 app.use('/api/hybrid', hybridRoutes);
+app.use('/api/funds', exploreFundsRoutes);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {

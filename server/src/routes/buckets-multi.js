@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const FinancialData = require('../models/FinancialData');
-const { cagr, computeReturns } = require('../utils/analytics');
+const { cagr, computeReturns, applyExpectedReturnBounds } = require('../utils/analytics');
 const {
   sharpeRatio,
   sortinoRatio,
@@ -59,7 +59,7 @@ router.post('/generate', async (req, res) => {
       
       return {
         ...fund,
-        calculatedReturn: fundCAGR,
+        calculatedReturn: applyExpectedReturnBounds(fundCAGR, fund.meta?.category),
         metrics: {
           sharpeRatio: fundSharpe,
           sortinoRatio: fundSortino,
@@ -259,27 +259,36 @@ router.post('/generate', async (req, res) => {
         // Check if we have valid historical data
         const hasHistoricalData = Object.values(historicalComparison.basketReturn).some(v => v !== null);
         
+        // Always get projected returns for comparison
+        const projectedComparison = await compareWithBenchmark(option.bucket, duration);
+        
         if (hasHistoricalData) {
-          // Use historical data
+          // Use historical data as primary, but include projected
           const chart = generatePerformanceChartData(
             historicalComparison.basketReturn,
             historicalComparison.benchmarkReturn,
             duration,
             amount
           );
-          option.benchmarkComparison = historicalComparison;
+          option.benchmarkComparison = {
+            ...historicalComparison,
+            projectedReturn: projectedComparison.basketReturn,
+            dataType: 'historical'
+          };
           option.chartData = chart;
         } else {
-          // Fallback to expected returns
+          // Use projected returns with indicator
           console.log('No historical data available, using expected returns');
-          const comparison = await compareWithBenchmark(option.bucket, duration);
           const chart = generatePerformanceChartData(
-            comparison.basketReturn,
-            comparison.benchmarkReturn,
+            projectedComparison.basketReturn,
+            projectedComparison.benchmarkReturn,
             duration,
             amount
           );
-          option.benchmarkComparison = comparison;
+          option.benchmarkComparison = {
+            ...projectedComparison,
+            dataType: 'projected'
+          };
           option.chartData = chart;
         }
       } catch (err) {
@@ -293,7 +302,10 @@ router.post('/generate', async (req, res) => {
             duration,
             amount
           );
-          option.benchmarkComparison = comparison;
+          option.benchmarkComparison = {
+            ...comparison,
+            dataType: 'projected'
+          };
           option.chartData = chart;
         } catch (fallbackErr) {
           console.error('Fallback benchmark calculation also failed:', fallbackErr);

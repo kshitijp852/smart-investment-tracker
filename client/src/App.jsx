@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ExploreFunds from './pages/ExploreFunds';
 import Disclaimer from './components/Disclaimer';
 import BenchmarkComparison from './components/BenchmarkComparison';
 import './styles.css';
@@ -202,6 +203,9 @@ export default function App(){
             <button className={view === 'main' ? 'nav-btn active' : 'nav-btn'} onClick={()=>setView('main')}>
               🏠 Home
             </button>
+            <button className={view === 'explore' ? 'nav-btn active' : 'nav-btn'} onClick={()=>setView('explore')}>
+              🔍 Explore Funds
+            </button>
             {!token ? (
               <>
                 <button className={view === 'login' ? 'nav-btn active' : 'nav-btn'} onClick={()=>setView('login')}>
@@ -225,6 +229,7 @@ export default function App(){
       <main className="main-content">
         {view === 'login' && <Login />}
         {view === 'register' && <Register />}
+        {view === 'explore' && <ExploreFunds />}
 
         {view === 'main' && (
           <div className="dashboard">

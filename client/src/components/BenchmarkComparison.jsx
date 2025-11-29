@@ -10,7 +10,7 @@ export default function BenchmarkComparison({ benchmarkData, chartData, formatCu
   }
 
   const { benchmarkComparison, chartData: chart } = benchmarkData;
-  const { basketReturn, benchmarkReturn, difference, beatsBenchmark, benchmarkComponents } = benchmarkComparison;
+  const { basketReturn, benchmarkReturn, difference, beatsBenchmark, benchmarkComponents, projectedReturn, dataType } = benchmarkComparison;
 
   // Determine overall performance
   const periods = ['1Y', '3Y', '5Y'];
@@ -18,7 +18,10 @@ export default function BenchmarkComparison({ benchmarkData, chartData, formatCu
   const outperformedCount = availablePeriods.filter(p => beatsBenchmark[p]).length;
   const overallOutperformed = outperformedCount > availablePeriods.length / 2;
   
-  // If no historical data available, hide the component
+  // Check if we have projected data to show
+  const hasProjectedData = projectedReturn && Object.values(projectedReturn).some(v => v !== null && v !== undefined);
+  
+  // If no data available at all, hide the component
   if (availablePeriods.length === 0) {
     return null;
   }
@@ -62,7 +65,11 @@ export default function BenchmarkComparison({ benchmarkData, chartData, formatCu
 
       {/* Performance Comparison Table */}
       <div className="benchmark-comparison-table">
-        <h4 className="benchmark-subtitle">📊 Performance Comparison</h4>
+        <h4 className="benchmark-subtitle">
+          📊 Performance Comparison
+          {dataType === 'historical' && <span className="data-badge historical">✓ Historical Data</span>}
+          {dataType === 'projected' && <span className="data-badge projected">⚡ Projected Returns</span>}
+        </h4>
         <div className="comparison-table">
           <div className="table-header">
             <div className="table-cell">Period</div>
@@ -75,6 +82,7 @@ export default function BenchmarkComparison({ benchmarkData, chartData, formatCu
               <div className="table-cell period-cell">{period}</div>
               <div className="table-cell value-cell">
                 {(basketReturn[period] * 100).toFixed(2)}%
+                {dataType === 'historical' && <span className="data-type-hint">actual</span>}
               </div>
               <div className="table-cell value-cell">
                 {(benchmarkReturn[period] * 100).toFixed(2)}%
@@ -86,6 +94,22 @@ export default function BenchmarkComparison({ benchmarkData, chartData, formatCu
             </div>
           ))}
         </div>
+        
+        {/* Show projected returns if we have historical data */}
+        {dataType === 'historical' && hasProjectedData && (
+          <div className="projected-comparison">
+            <h5 className="projected-title">📈 Projected Future Returns</h5>
+            <div className="projected-grid">
+              {periods.filter(p => projectedReturn[p] !== undefined && projectedReturn[p] !== null).map(period => (
+                <div key={period} className="projected-item">
+                  <span className="projected-period">{period}</span>
+                  <span className="projected-value">{(projectedReturn[period] * 100).toFixed(2)}%</span>
+                  <span className="projected-label">expected</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Interactive Line Chart */}

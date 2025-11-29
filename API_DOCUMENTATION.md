@@ -294,6 +294,105 @@ Prediction: 0 = High Risk, 1 = Good Investment
 
 ---
 
+### Fund Exploration
+
+#### GET /funds/explore
+Explore all available mutual funds with advanced filtering, sorting, and pagination.
+
+**Query Parameters:**
+- `page` (number, default: 1) - Page number
+- `limit` (number, default: 20, max: 100) - Items per page
+- `category` (string, optional) - Filter by fund category (e.g., "equity", "large cap", "debt")
+- `search` (string, optional) - Search by scheme name
+- `sortBy` (string, default: "score") - Sort field: "score", "return", "name", "nav"
+- `sortOrder` (string, default: "desc") - Sort order: "asc" or "desc"
+- `minReturn` (number, optional) - Minimum expected return percentage (not currently applied in aggregation)
+- `maxReturn` (number, optional) - Maximum expected return percentage (not currently applied in aggregation)
+
+**Example Requests:**
+```bash
+# Get first 20 funds
+GET /api/funds/explore?page=1&limit=20
+
+# Search for HDFC funds
+GET /api/funds/explore?search=hdfc&limit=10
+
+# Filter by category
+GET /api/funds/explore?category=large%20cap&page=1
+
+# Sort by NAV descending
+GET /api/funds/explore?sortBy=nav&sortOrder=desc&limit=5
+
+# Combined filters
+GET /api/funds/explore?category=equity&search=sbi&sortBy=name&sortOrder=asc
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "schemeCode": "119018",
+      "schemeName": "HDFC Large Cap Fund - Growth Option - Direct Plan",
+      "category": "Equity Scheme - Large Cap Fund",
+      "currentNAV": 1282.041,
+      "navDate": "2025-11-27T18:30:00.000Z",
+      "expectedReturn": 11,
+      "projectedValue5Y": 2160.31,
+      "riskScore": 4,
+      "score": 86
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 4674,
+    "totalItems": 14022,
+    "itemsPerPage": 20,
+    "hasNextPage": true,
+    "hasPrevPage": false
+  },
+  "filters": {
+    "category": "large cap",
+    "minReturn": null,
+    "maxReturn": null,
+    "search": null
+  },
+  "sorting": {
+    "sortBy": "nav",
+    "sortOrder": "desc"
+  }
+}
+```
+
+**Fund Metrics:**
+- `expectedReturn` - Expected annual return percentage based on category
+- `projectedValue5Y` - Projected NAV value after 5 years
+- `riskScore` - Risk rating from 1 (lowest) to 7 (highest)
+- `score` - Overall fund score (0-100) based on NAV, returns, and recency
+
+**Category-Based Expected Returns:**
+- Liquid Funds: 5%
+- Debt/Bond Funds: 7.5%
+- Hybrid/Balanced Funds: 9.5%
+- Large Cap Funds: 11%
+- Flexi/Multi Cap Funds: 12%
+- ELSS/Tax Saver Funds: 12%
+- Mid Cap Funds: 13%
+- Small Cap Funds: 15%
+- Default: 10%
+
+**Risk Score Mapping:**
+- 1: Liquid Funds (Lowest Risk)
+- 2: Debt/Bond Funds
+- 3: Hybrid/Balanced Funds
+- 4: Large Cap/Index Funds
+- 5: Flexi/Multi Cap/ELSS Funds
+- 6: Mid Cap Funds
+- 7: Small Cap Funds (Highest Risk)
+
+---
+
 ## Error Responses
 
 All endpoints return errors in this format:

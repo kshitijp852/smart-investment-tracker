@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// API Base URL - uses environment variable or defaults to localhost
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+
 const ExploreFunds = () => {
   const [funds, setFunds] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -45,7 +48,7 @@ const ExploreFunds = () => {
       if (search) params.search = search;
       if (category && category !== 'All Categories') params.category = category;
 
-      const response = await axios.get('http://localhost:5001/api/funds/explore', { params });
+      const response = await axios.get(`${API_BASE_URL}/funds/explore`, { params });
       
       setFunds(response.data.data);
       setPagination(response.data.pagination);
